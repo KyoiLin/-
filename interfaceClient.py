@@ -5,7 +5,7 @@ Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-22 17:30:10
+LastEditTime: 2023-04-22 19:06:49
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
@@ -34,34 +34,39 @@ if 0:
     s.connect((ADDR,port))
 else:
     s = socket()
+'''
+与后端进行测试时把iftest改为False
+'''
+iftest = True
 
 filepath = "./asset/id-zy.csv"
 logpath = "./logs/cookie.txt"
-'''
-正式运行时把logpath和test_cookie_path内容互换，并把iftest设置为False
-'''
 test_cookie_path = "./logs/cookie_temp.txt"
 test_search_result = "AAA-BBB-数一-英一-政治-专业课一_AAA-CCC-数一-英一-政治-专业课二"
-iftest = True
+
 
 '''
 检查cookie文件，若不存在则需要向服务器申请
 读取到的cookieID直接作为string保存
 '''
-def checkCookie():
+def checkCookie(s=socket(), iftest=True):
     global cookie
-    if(os.path.exists(test_cookie_path)):
+    if iftest:
+        cookie_path = test_cookie_path
+    else:
+        cookie_path = logpath
+    if(os.path.exists(cookie_path)):
         with open(test_cookie_path, "r" , encoding="utf-8") as f:  # 打开文件
             cookie_ = f.read()  # 读取文件
         cookie = cookie_
-    '''
-    正式运行时取消以下注释
-    '''
-    # else:
-    #     s.send('cookie'.encode('utf-8'))
-    #     cookie_ = s.recv().decode('utf-8')
-    #     print('Get Cookie: '+cookie_)
-    #     cookie = cookie_
+    else:
+        s.send('cookie'.encode('utf-8'))
+        cookie_ = s.recv().decode('utf-8')
+        print('Get Cookie: '+cookie_)
+        cookie = cookie_
+        file = open(cookie_path, 'w', encoding='utf-8')
+        file.write(cookie)
+        file.close()
 
 images = []
 img = None
@@ -117,8 +122,8 @@ class firstpage:
         title.place(x=325,y=70)
         mark = tk.Label(self.firstpage, text="*本平台信息仅供参考，一切信息请以院校官网及研招网为准！", fg='red', font=("黑体",15))
         mark.place(x=225,y=155)
-        warning_btn = ttk.Button(self.firstpage, text="click here", width=15, command=self.warningbox)
-        warning_btn.place(x=50,y=100)
+        # warning_btn = ttk.Button(self.firstpage, text="click here", width=15, command=self.warningbox)
+        # warning_btn.place(x=50,y=100)
         login_btn = tk.Button(self.firstpage, text='管理员入口>>>', width=15, command=self.login, relief='flat', bg=BGCOLOR, font=("等线",11,"underline","italic"))
         login_btn.place(x=730,y=510)
         tk.Label(self.firstpage, text='|', bg=BGCOLOR, font=("等线",13)).place(x=722,y=510)
@@ -482,7 +487,7 @@ class AdminPage:
         self.root = root
 
 if __name__ == "__main__":
-    checkCookie()
+    checkCookie(s,iftest)
     print("Now Cookie: "+cookie)
     root = tk.Tk()
     main(root)
