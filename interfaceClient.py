@@ -5,7 +5,7 @@ Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-23 21:45:24
+LastEditTime: 2023-04-23 22:01:47
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
@@ -577,7 +577,12 @@ class AdminPage:
     备份
     '''
     def reserve(self,):
-        tk.messagebox.showinfo('Info','备份成功！')
+        admin = u.Admin()
+        result = admin.reserve(s,iftest)
+        if result:
+            tk.messagebox.showinfo('Info','备份成功！')
+        else:
+            tk.messagebox.showwarning('Warning', '备份失败！')
     
     '''
     更新
@@ -641,11 +646,11 @@ class adminFeedbackPage():
         tk.Label(self.adminpage, text='*单击单条反馈信息查看详情并处理', bg=BGCOLOR).place(x=125,y=500)
         self.getFeedbackList()
 
-        rectwidth = 101; rectheight = 26; buttonwidth = 12
-        bx1 = 730; by1 = 508
+        rectwidth = 113; rectheight = 26; buttonwidth = 12
+        bx1 = 717; by1 = 508
         round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
-        back_btn = tk.Button(self.adminpage, text="返  回", width=buttonwidth, font=("幼圆",10),  relief='flat', bg=BTCOLOR, command=self.back)
-        back_btn.place(x=734,y=510)
+        back_btn = tk.Button(self.adminpage, text="返  回", width=buttonwidth, font=("幼圆",10, 'bold'),  relief='flat', bg=BTCOLOR, command=self.back)
+        back_btn.place(x=721,y=510)
 
     def getFeedbackList(self,):
         admin = u.Admin()

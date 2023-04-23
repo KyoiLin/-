@@ -196,6 +196,22 @@ class Admin:
             if data == '311':
                 result = False
         return result
+    
+    '''
+    input: socket
+    output: 备份是否成功(True/False)
+    function: 管理员提交备份请求
+    '''
+    def reserve(self, s, iftest=True):
+        reserve_request = "admin_backup"
+        print("Request: "+reserve_request)
+        result = True
+        if not iftest:
+            s.send(reserve_request.encode('utf-8'))
+            data = s.recv().decode('utf-8')
+            if data == '411':
+                result = False
+        return result
 
 if __name__ == "__main__":
     cookie = '1'
