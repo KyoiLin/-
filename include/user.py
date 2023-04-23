@@ -15,14 +15,14 @@ class User:
     '''
     def ClientRequestSearch(self,city_,college_,major_,search_):
         if city_=='--请选择--':
-            city_ = 'NULL'
+            city_ = ''
         if college_=='' or college_=='--请输入--':
-            college_ = 'NULL'
+            college_ = ''
         if major_=='--请选择--':
-            major_ = 'NULL'
+            major_ = ''
         if search_=='--请选择--' or search_ == '':
-            search_ = 'NULL'
-        return self.cookie+'_search_'+city_+'_'+college_+'_'+major_+'_'+search_
+            search_ = ''
+        return self.cookie+'_search_'+city_[1:3]+'_'+college_+'_'+major_[1:5]+'_'+search_
     
     '''
     input: socket，查询请求语句，如果是正式运行修改iftest为False
@@ -134,11 +134,76 @@ class Admin:
             if res == '211':
                 issucess = False
         return issucess
+    
+    def decode(self, data):
+        datalist = data.split('_')
+        return datalist
+
+    '''
+    input: socket
+    output: 数据库信息['123456', '2000', '2023.04.15 20:38']
+    function: 获得数据库信息
+    '''
+    def monitor(self, s, iftest=True, testdata='123456_2000_2023.04.15 20:38'):
+        monitor_request = 'admin_monitor'
+        print("Request: "+monitor_request)
+        if not iftest:
+            s.send(monitor_request.encode('utf-8'))
+            data = s.recv(1024).decode('utf-8')
+        else:
+            data = testdata
+        data_final = self.decode(data)
+        return data_final
+    
+    '''
+    input: socket
+    output: 反馈列表[['1', '1', '反馈内容', '已处理', '回复内容'], ['2', '2反馈内容', '已接收', '']]
+    function: 获取全部反馈信息
+    '''
+    def getFeedbackList(self, s, iftest=True, testdata=['1-1-反馈内容-已处理-回复内容_2-2反馈内容-已接收-']):
+        feedbacklist_request = 'admin_feedbacklist'
+        print("Request: "+feedbacklist_request)
+        if not iftest:
+            s.send(feedbacklist_request.encode('utf-8'))
+            datalist = []
+            while True:
+                data = s.recv(1024)     # get data
+                if data.decode('utf-8') == 'end':
+                    break
+                else:
+                    datalist.append(data.decode('utf-8'))
+        else:
+            datalist = testdata
+        data_final = []
+        for data in datalist:
+            datapiecelist = data.split('_')
+            for datapiece in datapiecelist:
+                data_final.append(datapiece.split('-'))
+        return data_final
+    
+    '''
+    input: socke，反馈信息ID，回复内容
+    output: 回复是否成功(True/False)
+    function: 提交回复
+    '''
+    def commitRespond(self, s, feedback_id, respond, iftest=True):
+        commit_request = "admin_reply_"+feedback_id+"_"+respond
+        print("Request: "+commit_request)
+        result = True
+        if not iftest:
+            s.send(commit_request.encode('utf-8'))
+            data = s.recv().decode('utf-8')
+            if data == '311':
+                result = False
+        return result
 
 if __name__ == "__main__":
     cookie = '1'
     user = User(cookie)
+    admin = Admin()
     datalist = ["AAA-BBB-数一-英一-政治-专业课一_AAA-CCC-数一-英一-政治-专业课二"]
     # dl = user.sendSearchRequest(socket(),'test')
-    dl = user.enquiryFeedback(socket())
+    # dl = user.enquiryFeedback(socket())
+    # dl = admin.monitor(s=socket())
+    dl = admin.getFeedbackList(socket())
     print(dl)

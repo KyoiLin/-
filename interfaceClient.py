@@ -1,11 +1,11 @@
 
 '''
-Description: 测试时需要对网络连接设置进行调整，checkCookie中部分代码解除注释
+Description: 测试时需要对网络连接设置进行调整并把iftest设为False
 Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-22 19:06:49
+LastEditTime: 2023-04-23 21:45:24
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
@@ -20,13 +20,13 @@ from socket import *
 import os
 import cv2 as cv
 
-'''
+'''==============attention here====================
 网络连接设置
 '''
 ADDR = '192.168.56.1'   #服务器的ip地址
 port=9000       # 统一的端口设置
 buffsize=1024
-'''
+'''==============attention here====================
 正式运行时修改以下五行代码让正常的socket运行即可
 '''
 if 0:
@@ -34,7 +34,7 @@ if 0:
     s.connect((ADDR,port))
 else:
     s = socket()
-'''
+'''==============attention here====================
 与后端进行测试时把iftest改为False
 '''
 iftest = True
@@ -77,6 +77,13 @@ SIZE = '1100x600'
 BGCOLOR = "#DDDDDD"
 BTCOLOR = '#F5F5F5'
 cookie = '0'
+
+feedbacktestpath = './logs/feedbacktest.txt'
+f = open(feedbacktestpath, encoding='utf-8')
+feedbacktest = ""
+for line in f:
+    feedbacktest += line.strip()
+feedbacktest = [feedbacktest]
 
 def create_rectangle(c1, x1, y1, x2, y2, **kwargs):
         if 'alpha' in kwargs:
@@ -472,7 +479,7 @@ class FeedbackPage:
         win_admit.resizable(False, False)
         window_form = tk.Frame(win_admit, width=400, height=200)
         window_form.pack()
-        tk.Label(window_form,text='请在此处输入反馈内容',font=('幼圆',11,'bold')).grid(row=0,column=0,columnspan=2,pady=10)
+        tk.Label(window_form,text='请在此处输入反馈内容（反馈内容不能包含“-”和“_”）：',font=('幼圆',11,'bold')).grid(row=0,column=0,columnspan=2,pady=10)
         self.feedtext = Text(window_form,height=15,width=70)
         self.feedtext.grid(row=1,column=0,columnspan=70)
         admit_btn = ttk.Button(window_form, text="提交反馈", command=adm)
@@ -484,7 +491,222 @@ class FeedbackPage:
 
 class AdminPage:
     def __init__(self, root) -> None:
+        self.num=0
+        global img
+        global images
         self.root = root
+        self.adminpage = tk.Frame(self.root,width=WIDTH,height=HEIGHT)
+        self.adminpage.place(x=0,y=0)
+        self.c1 = tk.Canvas(self.adminpage, width=WIDTH, height=HEIGHT)
+        img = tk.PhotoImage(file='./asset/cat.gif')   
+        # tk.Label(self.firstpage, image=img).place(x=100,y=100)  #Label to image
+        self.c1.create_image(940,400,image=img)
+        rect1 = create_rectangle(self.c1, 80,220,880,550,width=0,fill='black',alpha=0.08)
+        self.c1.place(x=0,y=0)
+        title = tk.Label(self.adminpage, text='2023考研信息查询·管理员界面', font=("黑体",30,"bold"))
+        title.place(x=260,y=70)
+        mark = tk.Label(self.adminpage, text="*本平台信息仅供参考，一切信息请以院校官网及研招网为准！", fg='red', font=("黑体",15))
+        mark.place(x=275,y=165)
+
+        rectwidth = 115; rectheight = 30; buttonwidth = 12
+        bx1 = 665; by1 = 247
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        view_btn = tk.Button(self.adminpage, text="查看数据库", width=buttonwidth,  font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.view)
+        view_btn.place(x=670,y=250)
+        bx1 = 745; by1 = 297
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        deal_btn = tk.Button(self.adminpage, text="处理反馈信息", width=buttonwidth, font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.deal)
+        deal_btn.place(x=750,y=300)
+        bx1 = 665; by1 = 347
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        reserve_btn = tk.Button(self.adminpage, text="数据备份", width=buttonwidth, font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.reserve)
+        reserve_btn.place(x=670,y=350)
+        bx1 = 745; by1 = 397
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        update_btn = tk.Button(self.adminpage, text="更新数据", width=buttonwidth, font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.update)
+        update_btn.place(x=750,y=400)
+        bx1 = 665; by1 = 447
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        back_btn = tk.Button(self.adminpage, text="退出登录", width=buttonwidth, font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.toFirstpage)
+        back_btn.place(x=670,y=450)
+        bx1 = 745; by1 = 497
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        over_btn = tk.Button(self.adminpage, text="删库跑路", width=buttonwidth, font=("幼圆",10,'bold'),  relief='flat', bg=BTCOLOR, command=self.over)
+        over_btn.place(x=750,y=500)
+        # textframe = tk.Frame(self.adminpage)
+        # textframe.place(x=175,y=300)
+        # tk.Label(textframe, text='Data Loading...', font=('Candara',15,'bold')).pack(pady=20,ipadx=10,ipady=10)
+        # tk.Label(textframe, text='Click Right Buttons to Choose Function~', font=('Candara',15,'bold')).pack(pady=20,ipadx=10,ipady=10)
+        self.showText()
+
+    def showText(self,):
+        textframe = tk.Frame(self.adminpage)
+        textframe.place(x=175,y=300)
+        tk.Label(textframe, text='Data Loading...', font=('Candara',15,'bold')).pack(pady=20,ipadx=10,ipady=10)
+        tk.Label(textframe, text='Click Right Buttons to Choose Function~', font=('Candara',15,'bold')).pack(pady=20,ipadx=10,ipady=10)
+
+    '''
+    查看数据库信息
+    '''
+    def view(self,):
+        self.menu = tk.Frame(self.adminpage,width=500,height=275)
+        self.menu.place(x=125,y=250)
+        ybar = Scrollbar(self.menu, orient='vertical')
+        self.heading1 = ('信息数量','院校数量','更新时间')
+        self.heading2 = ('cookie','反馈信息','反馈内容','状 态','回 复')
+        headlist = self.heading1
+        self.tree = ttk.Treeview(self.menu,columns=headlist,show='headings',displaycolumns='#all',selectmode='none',height=11,yscrollcommand=ybar.set)
+        ybar['command'] = self.tree.yview
+        for head in self.heading1:
+            self.tree.heading(head, text=head, anchor='center')
+            self.tree.column(head, width=163, anchor='center')
+        self.tree.grid(row=1, column=0, columnspan=4)
+        ybar.grid(row=1, column=4,sticky='ns')
+        admin = u.Admin()
+        data = admin.monitor(s,iftest)
+        self.tree.insert('', 'end', values=data)
+
+    '''
+    跳转到反馈处理界面
+    '''
+    def deal(self,):
+        self.adminpage.destroy()
+        adminFeedbackPage(self.root)
+    
+    '''
+    备份
+    '''
+    def reserve(self,):
+        tk.messagebox.showinfo('Info','备份成功！')
+    
+    '''
+    更新
+    '''
+    def update(self,):
+        tk.messagebox.showinfo('Info','更新成功！')
+    
+    '''
+    删库跑路
+    '''
+    def over(self,):
+        tk.messagebox.showwarning('Warning','无法执行此操作，请联系开发人员！')
+           
+    def toFirstpage(self,):
+        self.adminpage.destroy()
+        firstpage(self.root)
+
+class adminFeedbackPage():
+    def __init__(self, root) -> None:
+        global img
+        global images
+        self.root = root
+        self.adminpage = tk.Frame(self.root,width=WIDTH,height=HEIGHT)
+        self.adminpage.place(x=0,y=0)
+        self.c1 = tk.Canvas(self.adminpage, width=WIDTH, height=HEIGHT)
+        img = tk.PhotoImage(file='./asset/cat.gif')   
+        # tk.Label(self.firstpage, image=img).place(x=100,y=100)  #Label to image
+        self.c1.create_image(940,400,image=img)
+        rect1 = create_rectangle(self.c1, 80,220,880,550,width=0,fill='black',alpha=0.08)
+        self.c1.place(x=0,y=0)
+        title = tk.Label(self.adminpage, text='2023考研信息查询·管理员界面', font=("黑体",30,"bold"))
+        title.place(x=260,y=70)
+        mark = tk.Label(self.adminpage, text="*本平台信息仅供参考，一切信息请以院校官网及研招网为准！", fg='red', font=("黑体",15))
+        mark.place(x=275,y=165)
+
+        self.menu = tk.Frame(self.adminpage,width=500,height=275)
+        self.menu.place(x=125,y=250)
+        ybar = Scrollbar(self.menu, orient='vertical')
+        heading2 = ('cookie','反馈信息ID','反馈内容','状 态','回 复')
+        self.tree = ttk.Treeview(
+            self.menu,
+            columns=heading2,
+            show='headings',
+            displaycolumns='#all',
+            height=11,
+            yscrollcommand=ybar.set)
+        ybar['command'] = self.tree.yview
+        style_heading = ttk.Style()
+        style_heading.configure("Treeview.Heading", font=('幼圆',11,'bold'), rowheigt=20)
+        for head in heading2:
+            self.tree.heading(head, text=head, anchor='center')
+        self.tree.heading('反馈信息ID',text='反馈ID',anchor='center')
+        self.tree.column('cookie', width=60, anchor='center')
+        self.tree.column('反馈信息ID', width=60, anchor='center')
+        self.tree.column('反馈内容', width=245, anchor='center')
+        self.tree.column('状 态', width=75, anchor='center')
+        self.tree.column('回 复', width=245, anchor='center')
+        self.tree.grid(row=1, column=0, columnspan=4)
+        ybar.grid(row=1, column=4,sticky='ns')
+        self.tree.bind("<<TreeviewSelect>>", self.processFeedback)
+        tk.Label(self.adminpage, text='*单击单条反馈信息查看详情并处理', bg=BGCOLOR).place(x=125,y=500)
+        self.getFeedbackList()
+
+        rectwidth = 101; rectheight = 26; buttonwidth = 12
+        bx1 = 730; by1 = 508
+        round_rectangle(self.c1, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+        back_btn = tk.Button(self.adminpage, text="返  回", width=buttonwidth, font=("幼圆",10),  relief='flat', bg=BTCOLOR, command=self.back)
+        back_btn.place(x=734,y=510)
+
+    def getFeedbackList(self,):
+        admin = u.Admin()
+        datalist = admin.getFeedbackList(s,iftest,feedbacktest)
+        for data in datalist:
+            self.tree.insert('', 'end', values=data)
+
+    def processFeedback(self,event):
+        self.item = self.tree.set(self.tree.focus())
+        if self.item:
+            print(self.item)
+            feedback_window = tk.Toplevel(self.adminpage)
+            feedback_window.geometry("450x400")
+            feedback_window.resizable(0,1)
+            c = tk.Canvas(feedback_window, width=500,height=400)
+            c.place(x=0,y=0)
+            form1 = tk.Frame(feedback_window)
+            form1.pack(anchor='w',pady=5)
+            tk.Label(form1, text='Cookie ID: ', font=('幼圆', 11, 'bold')).pack(side='left',padx=10)
+            tk.Label(form1, text=self.item['cookie'], font=(11)).pack(side='left',padx=10)
+            form2 = tk.Frame(feedback_window)
+            form2.pack(anchor='w',pady=5)
+            tk.Label(form2, text='反馈信息ID: ', font=('幼圆', 11, 'bold')).pack(side='left',padx=10)
+            tk.Label(form2, text=self.item['反馈信息ID'], font=(11)).pack(side='left',padx=10)
+            form3 = tk.Frame(feedback_window)
+            form3.pack(anchor='w',pady=5)
+            tk.Label(form3, text='反馈状态: ', font=('幼圆', 11, 'bold')).pack(side='left',padx=10)
+            tk.Label(form3, text=self.item['状 态'], font=('幼圆', 11)).pack(side='left',padx=10)
+            tk.Label(feedback_window, text='反馈内容: ', font=('幼圆', 11, 'bold')).pack(anchor='w',padx=10,pady=5)
+            tk.Message(feedback_window,text=self.item['反馈内容'],width=425,font=('宋体',10)).pack(anchor='w',padx=10,pady=5)
+            tk.Label(feedback_window, text='回复: ', font=('幼圆', 11, 'bold')).pack(anchor='w',padx=10,pady=5)
+            if self.item['回 复'] == '':
+                self.respond = tk.Text(feedback_window,width=60,height=6)
+                self.respond.pack(anchor='w',padx=10,pady=5)
+                self.respond.insert(INSERT,'请在此处输入回复内容')
+                self.respond.bind("<Button-1>",self.clearText)
+                rectwidth = 101; rectheight = 26; buttonwidth = 12
+                bx1 = 174; by1 = 341
+                round_rectangle(c, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
+                commit_btn = tk.Button(feedback_window, text="提  交", width=buttonwidth, font=("幼圆",10),  relief='flat', bg=BTCOLOR, command=self.commit).pack(padx=10,pady=5)
+            else:
+                tk.Message(feedback_window, text=self.item['回 复'],width=450,font=('宋体',10)).pack(anchor='w',padx=10,pady=5)
+
+    def clearText(self, event):
+        self.respond.delete('1.0','end')
+
+    def commit(self,):
+        content = self.respond.get('1.0','end-1c')
+        if len(content) == 0:
+                tk.messagebox.showwarning('Warning','请输入内容！')
+        else:
+            admin = u.Admin()
+            result = admin.commitRespond(s, self.item['反馈信息ID'],content,iftest)
+            if result:
+                tk.messagebox.showinfo('Info','提交成功！')
+            else:
+                tk.messagebox.showwarning(title='Warning', message='提交失败！')
+
+    def back(self,):
+        self.adminpage.destroy()
+        AdminPage(self.root)
 
 if __name__ == "__main__":
     checkCookie(s,iftest)
