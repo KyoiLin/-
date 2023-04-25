@@ -5,7 +5,7 @@ Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-23 22:01:47
+LastEditTime: 2023-04-25 15:40:58
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
@@ -61,7 +61,7 @@ def checkCookie(s=socket(), iftest=True):
         cookie = cookie_
     else:
         s.send('cookie'.encode('utf-8'))
-        cookie_ = s.recv().decode('utf-8')
+        cookie_ = s.recv(1024).decode('utf-8')
         print('Get Cookie: '+cookie_)
         cookie = cookie_
         file = open(cookie_path, 'w', encoding='utf-8')
@@ -351,8 +351,8 @@ class SearchResultPage:
         tree.heading('院校', text='院  校', anchor='center')
         tree.heading('专业', text='专  业', anchor='center')
         tree.heading('专业方向', text='专业方向', anchor='center')
-        tree.heading('数学', text='数  学', anchor='center')
-        tree.heading('英语', text='英  语', anchor='center')
+        tree.heading('数学', text='业务一', anchor='center')
+        tree.heading('英语', text='业务二', anchor='center')
         tree.heading('专业一', text='专业课一', anchor='center')
         tree.heading('专业二', text='专业课二', anchor='center')
         tree.column('院校', width=130, anchor='center')

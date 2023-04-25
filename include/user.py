@@ -3,6 +3,52 @@
 import pandas as pd
 from socket import *
 import os
+import json
+
+def string_to_list(str):
+    list1=str.split("#")
+    list=[]
+    for li in list1:
+        if li!="end":
+
+            list.append(li.split('@'))
+        else:
+            list.append(li)
+    return list
+
+client_type = 'linxinfa'
+
+
+def send_data(s, cmd, **kv):
+    global client_type
+    jd = {}
+    jd['COMMAND'] = cmd
+    jd['client_type'] = client_type
+    jd['data'] = kv
+    jsonstr = json.dumps(jd)
+    #print('send: ' + jsonstr)
+    s.sendall(jsonstr.encode('utf8'))
+
+def get_message(s,cmd):
+    send_data(s, 'SEND_DATA', data=cmd)
+    li = []
+    while True:
+        try:
+            string = s.recv(1024000).decode('utf-8')
+        except:
+            continue
+        print(string)
+        if string!= 'end':
+            li += string_to_list(string)
+        else:
+            if string=="end":
+                li.append(['end'])
+            else:
+                li += string_to_list(string[:-3])
+                li.append(['end'])
+            break
+    return li
+
 
 class User:
     def __init__(self, cookie) -> None:
@@ -31,25 +77,26 @@ class User:
     '''
     def sendSearchRequest(self, s, search_request, iftest, test_search_result = ["AAA-BBB-DDD-数一-英一-政治-专业课一_AAA-CCC-EEE-数一-英一-政治-专业课二"]):
         if not iftest:
-            s.send(search_request.encode('utf-8'))
+            '''s.send(search_request.encode('utf-8'))
             datalist = []
             while True:
                 data = s.recv(1024)     # get data
                 if data.decode('utf-8') == 'end':
                     break
                 else:
-                    datalist.append(data.decode('utf-8'))
+                    datalist.append(data.decode('utf-8'))'''
+            print(search_request)
+            datalist=get_message(s,search_request)
         else:
             datalist = test_search_result
-        decode_datalist = self.decodedata(datalist)
-        print(decode_datalist)
+        '''decode_datalist = self.decodedata(datalist)
         final_datalist = []
         for data in decode_datalist:
             # print(data)
             data_piece = data.split('-')
             # print(data_piece)
-            final_datalist.append(data_piece)
-        return final_datalist
+            final_datalist.append(data_piece)'''
+        return datalist[:-2]
 
     '''
     input: 接收到的未解码的查询结果["AAA-BBB-数一-英一-政治-专业课一_AAA-CCC-数一-英一-政治-专业课二"]
@@ -72,10 +119,8 @@ class User:
         print('Request: '+feedback_request)
         result = True
         if not iftest:
-            s.send(feedback_request.encode('utf-8'))
-            getresult = s.recv(1024)
-            if getresult.decode('utf-8') == '000':
-                result = False
+            datalist = get_message(s, feedback_request)
+            
         return result
     
     '''
@@ -87,17 +132,18 @@ class User:
         enquiry_request = self.cookie+'_fsearch'
         print("Request: "+enquiry_request)
         if not iftest:
-            s.send(enquiry_request.encode('utf-8'))
+            '''s.send(enquiry_request.encode('utf-8'))
             datalist = []
             while True:
                 data = s.recv(1024)     # get data
                 if data.decode('utf-8') == 'end':
                     break
                 else:
-                    datalist.append(data.decode('utf-8'))
+                    datalist.append(data.decode('utf-8'))'''
+            datalist = get_message(s, enquiry_request)
         else:
             datalist = test_search_result
-        decode_datalist = self.decodedata(datalist)
+        '''decode_datalist = self.decodedata(datalist)
         print(decode_datalist)
         final_datalist = []
         for data in decode_datalist:
@@ -107,8 +153,8 @@ class User:
             data_piece.insert(0,len(final_datalist)+1)
             if data_piece[3] == "NULL":
                 data_piece[3] = "还没有回复QAQ"
-            final_datalist.append(data_piece)
-        return final_datalist
+            final_datalist.append(data_piece)'''
+        return datalist[:-1]
 
 
 class Admin:
@@ -129,9 +175,9 @@ class Admin:
         print("Request: "+login_request)
         issucess = True
         if not iftest:
-            s.send(login_request.encode('utf-8'))
-            res = s.recv(1024).decode('utf-8')
-            if res == '211':
+            #s.send(login_request.encode('utf-8'))
+            res = get_message(s, login_request)
+            if res[0][0] == '211':
                 issucess = False
         return issucess
     
@@ -164,22 +210,22 @@ class Admin:
         feedbacklist_request = 'admin_feedbacklist'
         print("Request: "+feedbacklist_request)
         if not iftest:
-            s.send(feedbacklist_request.encode('utf-8'))
-            datalist = []
-            while True:
+            #s.send(feedbacklist_request.encode('utf-8'))
+            datalist = get_message(s, feedbacklist_request)
+            '''while True:
                 data = s.recv(1024)     # get data
                 if data.decode('utf-8') == 'end':
                     break
                 else:
-                    datalist.append(data.decode('utf-8'))
+                    datalist.append(data.decode('utf-8'))'''
         else:
             datalist = testdata
-        data_final = []
+        '''data_final = []
         for data in datalist:
             datapiecelist = data.split('_')
             for datapiece in datapiecelist:
-                data_final.append(datapiece.split('-'))
-        return data_final
+                data_final.append(datapiece.split('-'))'''
+        return datalist[:-1]
     
     '''
     input: socke，反馈信息ID，回复内容
@@ -191,25 +237,8 @@ class Admin:
         print("Request: "+commit_request)
         result = True
         if not iftest:
-            s.send(commit_request.encode('utf-8'))
-            data = s.recv().decode('utf-8')
-            if data == '311':
-                result = False
-        return result
-    
-    '''
-    input: socket
-    output: 备份是否成功(True/False)
-    function: 管理员提交备份请求
-    '''
-    def reserve(self, s, iftest=True):
-        reserve_request = "admin_backup"
-        print("Request: "+reserve_request)
-        result = True
-        if not iftest:
-            s.send(reserve_request.encode('utf-8'))
-            data = s.recv().decode('utf-8')
-            if data == '411':
+            data = get_message(s, commit_request)
+            if data[0][0] == '311':
                 result = False
         return result
 
