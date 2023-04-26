@@ -1,11 +1,12 @@
 
 '''
-Description: 测试时需要对网络连接设置进行调整并把iftest设为False
+Description: 测试时需要对网络连接设置进行调整并把iftest设为False同时把第19行import文件改为user.py
+            ，但是如果只进行前端测试的话可以：iftest设为True并保证第19行import了user0文件（不是user文件）
 Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-26 13:41:12
+LastEditTime: 2023-04-26 15:47:20
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
