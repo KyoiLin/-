@@ -5,7 +5,7 @@ Version: 1.0
 Author: KyoiLin
 Date: 2023-04-16 16:57:38
 LastEditors: KyoiLin
-LastEditTime: 2023-04-25 15:40:58
+LastEditTime: 2023-04-26 13:41:12
 FilePath: \code\interfaceClient.py
 Copyright (C) 2023 KyoiLin. All rights reserved.
 '''
@@ -15,7 +15,7 @@ from tkinter import ttk
 from tkinter.messagebox import *
 from PIL import Image, ImageTk
 import pandas as pd
-import include.user as u
+import include.user0 as u
 from socket import *
 import os
 import cv2 as cv
@@ -664,7 +664,7 @@ class adminFeedbackPage():
             print(self.item)
             feedback_window = tk.Toplevel(self.adminpage)
             feedback_window.geometry("450x400")
-            feedback_window.resizable(0,1)
+            feedback_window.resizable(0,0)
             c = tk.Canvas(feedback_window, width=500,height=400)
             c.place(x=0,y=0)
             form1 = tk.Frame(feedback_window)
@@ -688,9 +688,9 @@ class adminFeedbackPage():
                 self.respond.insert(INSERT,'请在此处输入回复内容')
                 self.respond.bind("<Button-1>",self.clearText)
                 rectwidth = 101; rectheight = 26; buttonwidth = 12
-                bx1 = 174; by1 = 341
+                bx1 = 174; by1 = 370
                 round_rectangle(c, bx1,by1,bx1+rectwidth,by1+rectheight,radius=20,fill=BTCOLOR)
-                commit_btn = tk.Button(feedback_window, text="提  交", width=buttonwidth, font=("幼圆",10),  relief='flat', bg=BTCOLOR, command=self.commit).pack(padx=10,pady=5)
+                commit_btn = tk.Button(feedback_window, text="提  交", width=buttonwidth, font=("幼圆",10),  relief='flat', bg=BTCOLOR, command=self.commit).pack(side='bottom',padx=10,pady=5)
             else:
                 tk.Message(feedback_window, text=self.item['回 复'],width=450,font=('宋体',10)).pack(anchor='w',padx=10,pady=5)
 
